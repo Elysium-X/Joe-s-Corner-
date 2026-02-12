@@ -13,16 +13,20 @@ const DATA_DIR = path.join(__dirname, 'data');
 const AVAILABLE_MEALS_PATH = path.join(DATA_DIR, 'available-meals.json');
 const ORDERS_PATH = path.join(DATA_DIR, 'orders.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const PORT = Number(process.env.PORT) || 3000;
+const IMAGES_DIR = path.join(PUBLIC_DIR, 'images');
 
 app.use(bodyParser.json());
-api.use('/images', express.static(PUBLIC_DIR));
+api.use('/images', express.static(IMAGES_DIR));
 
 api.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   next();
+});
+
+api.get('/', (req, res) => {
+  res.json({ message: 'API is running 🚀' });
 });
 
 api.get('/meals', async (req, res, next) => {
@@ -92,12 +96,5 @@ app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ message: 'Internal server error' });
 });
-
-// Only start a listener when running locally; Vercel serverless will invoke the handler instead.
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Backend listening on port ${PORT}`);
-  });
-}
 
 export default app;
