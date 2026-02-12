@@ -1,6 +1,7 @@
 import MealItem from "./MealItem.jsx";
 import useHttp from "../hooks/useHttp.js";
 import Error from "./Error.jsx";
+import { getApiUrl } from "../util/api.js";
 
 const requestConfig = {};
 
@@ -9,11 +10,7 @@ export default function Meals() {
     data: loadedMeals,
     isLoading,
     error,
-  } = useHttp(
-    'http://localhost:3000/meals',
-    requestConfig,
-    []
-  );
+  } = useHttp(getApiUrl("/meals"), requestConfig, []);
 
   if (isLoading) {
     return <p className="center">Fetching Meals..</p>;

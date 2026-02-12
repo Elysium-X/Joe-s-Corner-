@@ -20,7 +20,7 @@ export default function Header({ theme, onSetTheme }) {
     <header id="main-header">
       <div id="title">
         <img src={img} alt="Logo" />
-        <h1>Joe's Corner</h1>
+        <h1>Joe&apos;s Corner</h1>
       </div>
       <nav>
         <div className="theme-toggle" role="group" aria-label="Theme switcher">

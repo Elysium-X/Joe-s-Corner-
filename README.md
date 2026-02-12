@@ -80,3 +80,10 @@ Add these two screenshot files, then they render automatically:
 ## 📜 Scripts
 - Frontend: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`
 - Backend: `cd backend && npm start`
+
+## Deployment Notes
+- Frontend API base URL is configured with `VITE_API_URL`.
+- Create `.env` from `.env.example` for local/dev values.
+- In production, set:
+  - `VITE_API_URL` to your deployed backend URL (for frontend build).
+  - `PORT` for backend hosting platform (backend defaults to `3000` if not set).
