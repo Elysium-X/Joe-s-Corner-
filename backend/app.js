@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 
 const app = express();
+const api = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, 'data');
@@ -15,16 +16,16 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT) || 3000;
 
 app.use(bodyParser.json());
-app.use(express.static(PUBLIC_DIR));
+api.use('/images', express.static(PUBLIC_DIR));
 
-app.use((req, res, next) => {
+api.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   next();
 });
 
-app.get('/meals', async (req, res, next) => {
+api.get('/meals', async (req, res, next) => {
   try {
     const meals = await fs.readFile(AVAILABLE_MEALS_PATH, 'utf8');
     res.json(JSON.parse(meals));
@@ -33,7 +34,7 @@ app.get('/meals', async (req, res, next) => {
   }
 });
 
-app.post('/orders', async (req, res, next) => {
+api.post('/orders', async (req, res, next) => {
   const orderData = req.body.order;
 
   if (!orderData || !orderData.items || orderData.items.length === 0) {
@@ -76,6 +77,8 @@ app.post('/orders', async (req, res, next) => {
   }
 });
 
+app.use('/api', api);
+
 app.use((req, res) => {
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -84,7 +87,8 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Not found' });
 });
 
-app.use((err, req, res, next) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ message: 'Internal server error' });
 });
