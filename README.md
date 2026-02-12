@@ -71,11 +71,11 @@ npm run dev
 
 ## 📸 UI Preview
 Add these two screenshot files, then they render automatically:
-- `public/screenshot-dark.png`
-- `public/screenshot-light.png`
+- `src/assets/screenshot-dark.png`
+- `src/assets/screenshot-light.png`
 
-![Dark Mode UI](./public/screenshot-dark.png)
-![Light Mode UI](./public/screenshot-light.png)
+![Dark Mode UI](./src/assets/screenshot-dark.png)
+![Light Mode UI](./src/assets/screenshot-light.png)
 
 ## 📜 Scripts
 - Frontend: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`
