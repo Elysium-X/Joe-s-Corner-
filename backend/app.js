@@ -82,6 +82,8 @@ api.post('/orders', async (req, res, next) => {
 });
 
 app.use('/api', api);
+// Allow root access in Vercel so hitting "/" doesn't return 404.
+app.use('/', api);
 
 app.use((req, res) => {
   if (req.method === 'OPTIONS') {
