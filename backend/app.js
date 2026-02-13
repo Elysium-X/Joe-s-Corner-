@@ -16,14 +16,16 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const IMAGES_DIR = path.join(PUBLIC_DIR, 'images');
 
 app.use(bodyParser.json());
-api.use('/images', express.static(IMAGES_DIR));
-
-api.use((req, res, next) => {
+app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
+api.use('/images', express.static(IMAGES_DIR));
 
 api.get('/', (req, res) => {
   res.json({ message: 'API is running 🚀' });
