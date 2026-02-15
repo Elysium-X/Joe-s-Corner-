@@ -15,6 +15,25 @@ const ORDERS_PATH = path.join(DATA_DIR, 'orders.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const IMAGES_DIR = path.join(PUBLIC_DIR, 'images');
 
+async function readOrdersSafe() {
+  try {
+    const orders = await fs.readFile(ORDERS_PATH, 'utf8');
+    const parsed = JSON.parse(orders);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    if (error && error.code === 'ENOENT') {
+      return [];
+    }
+    console.error('Failed to read orders.json:', error);
+    return [];
+  }
+}
+
+async function writeOrdersSafe(allOrders) {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(ORDERS_PATH, JSON.stringify(allOrders));
+}
+
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -73,10 +92,9 @@ api.post('/orders', async (req, res, next) => {
       ...orderData,
       id: (Math.random() * 1000).toString(),
     };
-    const orders = await fs.readFile(ORDERS_PATH, 'utf8');
-    const allOrders = JSON.parse(orders);
+    const allOrders = await readOrdersSafe();
     allOrders.push(newOrder);
-    await fs.writeFile(ORDERS_PATH, JSON.stringify(allOrders));
+    await writeOrdersSafe(allOrders);
     res.status(201).json({ message: 'Order created!' });
   } catch (error) {
     next(error);
