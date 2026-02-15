@@ -1,29 +1,42 @@
-import { useContext, useActionState } from "react";
+import { useActionState, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import Modal from "./UI/Modal";
-import CartContext from "../store/CartContext.jsx";
-import UserProgressContext from "../store/UserProgressContext.jsx";
 import { currencyFormatter } from "../util/formatting.js";
 import Input from "./UI/Input.jsx";
 import Button from "./UI/Button.jsx";
 import Error from "./Error.jsx";
-import useHttp from "../hooks/useHttp.js";
-import { getApiUrl } from "../util/api.js";
+import { clearCart } from "../store/cartSlice.js";
+import { hideCheckout } from "../store/userProgressSlice.js";
 
-const requestConfig = {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-};
+const ORDERS_STORAGE_KEY = "cv_food_orders";
+
+function readStoredOrders() {
+  try {
+    const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredOrders(orders) {
+  localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+}
 
 export default function Checkout() {
-  const cartCtx = useContext(CartContext);
-  const userProgressCtx = useContext(UserProgressContext);
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.items);
+  const progress = useSelector((state) => state.userProgress.progress);
 
-  const { data, error, sendRequest, clearData } = useHttp(getApiUrl("/orders"), requestConfig);
+  const [data, setData] = useState();
+  const [error, setError] = useState();
 
-  const cartTotal = cartCtx.items.reduce(
+  const cartTotal = cartItems.reduce(
     (totalPrice, item) => totalPrice + item.quantity * item.price,
     0
   );
@@ -31,27 +44,34 @@ export default function Checkout() {
   async function checkOutAction(prevState, fd) {
     const userData = Object.fromEntries(fd.entries());
 
-    await sendRequest(
-      JSON.stringify({
-        order: {
-          items: cartCtx.items,
-          customer: userData,
-        },
-      })
-    );
+    setError(undefined);
+    try {
+      const newOrder = {
+        items: cartItems,
+        customer: userData,
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      };
+      const existingOrders = readStoredOrders();
+      existingOrders.push(newOrder);
+      writeStoredOrders(existingOrders);
+      setData({ message: "Order created!" });
+    } catch (err) {
+      setError(err?.message || "Something went wrong");
+    }
+    return { message: "Order created!" };
   }
 
   function handleFinish() {
-    userProgressCtx.hideCheckout();
-    cartCtx.clearCart();
-    clearData();
+    dispatch(hideCheckout());
+    dispatch(clearCart());
+    setData(undefined);
   }
 
   function handleCloseCheckout() {
-    userProgressCtx.hideCheckout();
+    dispatch(hideCheckout());
   }
 
-  const [, formAction, isSending] = useActionState(
+  const [, formAction, isPending] = useActionState(
     checkOutAction,
     null
   );
@@ -64,13 +84,13 @@ export default function Checkout() {
       <Button>Confirm</Button>
     </>
   );
-  if (isSending) {
+  if (isPending) {
     actions = <span> Sending order data...</span>;
   }
   if (data && !error) {
     return (
       <Modal
-        open={userProgressCtx.progress === "checkout"}
+        open={progress === "checkout"}
         onClose={handleFinish}
       >
         <h2>Success!</h2>
@@ -84,7 +104,7 @@ export default function Checkout() {
 
   return (
     <Modal
-      open={userProgressCtx.progress === "checkout"}
+      open={progress === "checkout"}
       onClose={handleCloseCheckout}
     >
       <form action={formAction}>

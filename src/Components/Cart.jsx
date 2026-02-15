@@ -1,44 +1,45 @@
-import { useContext } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Modal from "./UI/Modal.jsx";
-import CartContext from "../store/CartContext.jsx";
 import Button from "./UI/Button.jsx";
 import { currencyFormatter } from "../util/formatting.js";
-import UserProgressContext from "../store/UserProgressContext.jsx";
 import CartItem from "./CartItem.jsx";
+import { addItem, removeItem } from "../store/cartSlice.js";
+import { hideCart, showCheckout } from "../store/userProgressSlice.js";
 
 export default function Cart() {
-  const cartCtx = useContext(CartContext);
-  const userProgressCtx = useContext(UserProgressContext);
+  const dispatch = useDispatch();
+  const items = useSelector((state) => state.cart.items);
+  const progress = useSelector((state) => state.userProgress.progress);
 
-  const cartTotal = cartCtx.items.reduce(
+  const cartTotal = items.reduce(
     (totalPrice, item) => totalPrice + item.quantity * item.price,
     0,
   );
 
   function handleCloseCart() {
-    userProgressCtx.hideCart();
+    dispatch(hideCart());
   }
 
   function handleGoToCheckout() {
-    userProgressCtx.showCheckout();
+    dispatch(showCheckout());
   }
 
   return (
     <Modal
       className="cart"
-      open={userProgressCtx.progress === "cart"}
-      onClose={userProgressCtx.progress === "cart" ? handleCloseCart : null}
+      open={progress === "cart"}
+      onClose={progress === "cart" ? handleCloseCart : null}
     >
       <h2>Your Cart</h2>
       <ul>
-        {cartCtx.items.map((item) => (
+        {items.map((item) => (
           <CartItem
             key={item.id}
             name={item.name}
             quantity={item.quantity}
             price={item.price}
-            onDecrease={() => cartCtx.removeItem(item.id)}
-            onIncrease={() => cartCtx.addItem(item)}
+            onDecrease={() => dispatch(removeItem(item.id))}
+            onIncrease={() => dispatch(addItem(item))}
           />
         ))}
       </ul>
@@ -47,7 +48,7 @@ export default function Cart() {
         <Button textOnly onClick={handleCloseCart}>
           Close
         </Button>
-        {cartCtx.items.length > 0 && (
+        {items.length > 0 && (
           <Button onClick={handleGoToCheckout}>Go To Checkout</Button>
         )}
       </p>
